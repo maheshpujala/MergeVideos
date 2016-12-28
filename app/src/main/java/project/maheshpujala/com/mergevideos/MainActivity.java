@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     videoView.setVisibility(View.GONE);
                 }
                 break;
-
             case R.id.append:
                 if(videoOneHeight == videoTwoHeight){
                     if(videoOneType.equals("video/mp4") && videoTwoType.equals("video/mp4")) {
@@ -98,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             addButton2.setText(getResources().getString(R.string.add_video_two));
                             addButton1.setBackgroundColor(Color.GRAY);
                             addButton2.setBackgroundColor(Color.GRAY);
-                            if (mux(videoOnePath, videoTwoPath, output)) {
+                            if (mergeVideos(videoOnePath, videoTwoPath, output)) {
                                 Toast.makeText(this, "Merged Video Output Path" + output, Toast.LENGTH_LONG).show();
                                 showVideo.setVisibility(View.VISIBLE);
                             } else {
@@ -205,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return type;
     }
 
-    public boolean mux(String videoFile, String videoFileTwo, String outputFile) {
+    public boolean mergeVideos(String videoFile, String videoFileTwo, String outputFile) {
         try {
             Movie[] inMovies = new Movie[]{
                     MovieCreator.build(videoFile),
