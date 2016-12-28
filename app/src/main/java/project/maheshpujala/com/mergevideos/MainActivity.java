@@ -15,6 +15,7 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.append:
-                if(videoOneHeight == videoTwoHeight){
+                if(videoOneHeight == videoTwoHeight || videoOneHeight == videoTwoWidth ){
                     if(videoOneType.equals("video/mp4") && videoTwoType.equals("video/mp4")) {
                         String root = Environment.getExternalStorageDirectory().toString();
                         output = root + "/" + "Merged_Video.mp4";
