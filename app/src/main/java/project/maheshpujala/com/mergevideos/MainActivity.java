@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(videoOneHeight == videoTwoHeight){
                     if(videoOneType.equals("video/mp4") && videoTwoType.equals("video/mp4")) {
                         String root = Environment.getExternalStorageDirectory().toString();
-                        output = root + "/" + "ouput.mp4";
+                        output = root + "/" + "Merged_Video.mp4";
                         if (videoOnePath == null && videoTwoPath == null) {
                             Toast.makeText(this, "Add Both Videos", Toast.LENGTH_LONG).show();
                         } else {
