@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.append:
-                if(videoOneHeight == videoTwoHeight){
+                if(videoOneHeight == videoTwoHeight ){
                     if(videoOneType.equals("video/mp4") && videoTwoType.equals("video/mp4")) {
                         String root = Environment.getExternalStorageDirectory().toString();
                         output = root + "/" + "Merged_Video.mp4";
