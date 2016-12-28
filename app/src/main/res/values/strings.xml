@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Merge Mp4 Videos</string>
+    <string name="add_video_one">Select First Mp4 Video</string>
+    <string name="add_video_two">Select Second Mp4 Video</string>
+    <string name="added_video_one">Video One Added</string>
+    <string name="added_video_two">Video Two Added</string>
+    <string name="append_both_videos">Append both videos</string>
+    <string name="show_merged_videos">Show Merged Video</string>
+
+</resources>
