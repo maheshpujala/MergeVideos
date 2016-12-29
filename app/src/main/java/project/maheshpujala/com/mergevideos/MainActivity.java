@@ -87,13 +87,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.append:
-                if(videoOneHeight == videoTwoHeight ){
-                    if(videoOneType.equals("video/mp4") && videoTwoType.equals("video/mp4")) {
-                        String root = Environment.getExternalStorageDirectory().toString();
-                        output = root + "/" + "Merged_Video.mp4";
-                        if (videoOnePath == null && videoTwoPath == null) {
-                            Toast.makeText(this, "Add Both Videos", Toast.LENGTH_LONG).show();
-                        } else {
+                if (videoOnePath == null || videoTwoPath == null) {
+                    Toast.makeText(this, "Add Both Videos", Toast.LENGTH_LONG).show();
+                } else {
+                    if (videoOneHeight == videoTwoHeight) {
+                        if (videoOneType.equals("video/mp4") && videoTwoType.equals("video/mp4")) {
+                            String root = Environment.getExternalStorageDirectory().toString();
+                            output = root + "/" + "Merged_Video.mp4";
+
                             addButton1.setText(getResources().getString(R.string.add_video_one));
                             addButton2.setText(getResources().getString(R.string.add_video_two));
                             addButton1.setBackgroundColor(Color.GRAY);
@@ -104,20 +105,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             } else {
                                 Toast.makeText(this, "Some Error Occurred.Try Again", Toast.LENGTH_LONG).show();
                             }
+                        } else {
+                            addButton1.setText(getResources().getString(R.string.add_video_one));
+                            addButton2.setText(getResources().getString(R.string.add_video_two));
+                            addButton1.setBackgroundColor(Color.GRAY);
+                            addButton2.setBackgroundColor(Color.GRAY);
+                            Toast.makeText(this, "Make sure both videos are of file type mp4", Toast.LENGTH_LONG).show();
                         }
-                    }else{
+                    } else {
                         addButton1.setText(getResources().getString(R.string.add_video_one));
                         addButton2.setText(getResources().getString(R.string.add_video_two));
                         addButton1.setBackgroundColor(Color.GRAY);
                         addButton2.setBackgroundColor(Color.GRAY);
-                        Toast.makeText(this,"Make sure both videos are of file type mp4",Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Make sure both videos are of same resolution", Toast.LENGTH_LONG).show();
                     }
-                }else{
-                    addButton1.setText(getResources().getString(R.string.add_video_one));
-                    addButton2.setText(getResources().getString(R.string.add_video_two));
-                    addButton1.setBackgroundColor(Color.GRAY);
-                    addButton2.setBackgroundColor(Color.GRAY);
-                    Toast.makeText(this,"Make sure both videos are of same resolution",Toast.LENGTH_LONG).show();
                 }
                 break;
             case R.id.showMergedVideo:
@@ -212,16 +213,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     MovieCreator.build(videoFileTwo)};
 
             List<Track> videoTracks = new LinkedList<Track>();
+            List<Track> audioTracks = new LinkedList<Track>();
             for (Movie m : inMovies) {
                 for (Track t : m.getTracks()) {
                     if (t.getHandler().equals("vide")) {
                         videoTracks.add(t);
+                    }
+                    if (t.getHandler().equals("soun")) {
+                        audioTracks.add(t);
                     }
                 }
             }
             Movie result = new Movie();
             if (videoTracks.size() > 0) {
                 result.addTrack(new AppendTrack(videoTracks.toArray(new Track[videoTracks.size()])));
+            }
+            if (audioTracks.size() > 0) {
+                result.addTrack(new AppendTrack(audioTracks.toArray(new Track[audioTracks.size()])));
             }
             Container out = new DefaultMp4Builder().build(result);
             FileOutputStream fos = new FileOutputStream(outputFile);
