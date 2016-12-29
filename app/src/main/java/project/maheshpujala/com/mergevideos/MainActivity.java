@@ -1,6 +1,5 @@
 package project.maheshpujala.com.mergevideos;
 
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,10 +14,11 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.TabHost;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -33,58 +33,62 @@ import java.io.FileOutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    int VIDEO_ONE = 1 , VIDEO_TWO = 2,videoOneWidth,videoOneHeight,videoTwoHeight,videoTwoWidth;
+public class MainActivity extends AppCompatActivity implements DownloadVideo.AsyncResponse,View.OnClickListener{
+    int VIDEO_ONE = 1 , VIDEO_TWO = 2,CLOUD_VIDEO_ONE = 3,CLOUD_VIDEO_TWO = 4,videoOneWidth,videoOneHeight,videoTwoHeight,videoTwoWidth,firstCloudVideoHeight,firstCloudVideoWidth,secondCloudVideoHeight,secondCloudVideoWidth;
 
     private static final int REQUEST_WRITE_STORAGE = 112;
-    String  videoOnePath,videoTwoPath,output,videoTwoType,videoOneType;
+    String  videoOnePath,videoTwoPath,firstCloudVideoPath,secondCloudVideoPath,output,videoTwoType,videoOneType,firstCloudVideoType,secondCloudVideoType;
     int permissionCheck;
-    Button appendButton,showVideo,addButton1,addButton2;
-    VideoView videoView;
+    Button appendButton,showVideoButton,addButton1,addButton2,appendCloudButton,addCloudButton,showCloudVideoButton;
+    VideoView videoView,cloudVideoView;
+     TextView progressText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        progressText= (TextView) findViewById(R.id.ProgressText);
+
         appendButton = (Button)findViewById(R.id.append );
-        showVideo = (Button)findViewById(R.id.showMergedVideo);
-        showVideo.setVisibility(View.GONE);
+        appendCloudButton = (Button)findViewById(R.id.appendVideoCloud );
+
+        showVideoButton = (Button)findViewById(R.id.showMergedVideo);
+        showCloudVideoButton = (Button)findViewById(R.id.showMergedVideoCloud);
+        showVideoButton.setVisibility(View.GONE);
+        showCloudVideoButton.setVisibility(View.GONE);
 
         videoView = (VideoView) findViewById(R.id.videoView);
+        cloudVideoView = (VideoView) findViewById(R.id.videoViewCloud);
         videoView.setVisibility(View.GONE);
+        cloudVideoView.setVisibility(View.GONE);
 
         addButton1 = (Button)findViewById(R.id.addVideo1);
         addButton2 = (Button)findViewById(R.id.addVideo2);
+        addCloudButton = (Button)findViewById(R.id.addFirstVideoCloud);
+        addCloudButton.setBackgroundColor(Color.GRAY);
         addButton1.setBackgroundColor(Color.GRAY);
         addButton2.setBackgroundColor(Color.GRAY);
 
         appendButton.setOnClickListener(this);
         addButton1.setOnClickListener(this);
         addButton2.setOnClickListener(this);
-        showVideo.setOnClickListener(this);
+        showVideoButton.setOnClickListener(this);
+        addCloudButton.setOnClickListener(this);
+        appendCloudButton.setOnClickListener(this);
+        showCloudVideoButton.setOnClickListener(this);
+        setTabhost();
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.addVideo1:
-                if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                    checkStoragePermission();
-                }else{
-                    addVideo(VIDEO_ONE);
-                    showVideo.setVisibility(View.GONE);
-                    videoView.setVisibility(View.GONE);
-                }
+               addVideoMethod(VIDEO_ONE);
                 break;
 
             case R.id.addVideo2:
-                if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                    checkStoragePermission();
-                }else{
-                    addVideo(VIDEO_TWO);
-                    showVideo.setVisibility(View.GONE);
-                    videoView.setVisibility(View.GONE);
-                }
+                addVideoMethod(VIDEO_TWO);
                 break;
             case R.id.append:
                 if (videoOnePath == null || videoTwoPath == null) {
@@ -101,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             addButton2.setBackgroundColor(Color.GRAY);
                             if (mergeVideos(videoOnePath, videoTwoPath, output)) {
                                 Toast.makeText(this, "Merged Video Output Path" + output, Toast.LENGTH_LONG).show();
-                                showVideo.setVisibility(View.VISIBLE);
+                                showVideoButton.setVisibility(View.VISIBLE);
                             } else {
                                 Toast.makeText(this, "Some Error Occurred.Try Again", Toast.LENGTH_LONG).show();
                             }
@@ -126,6 +130,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 videoView.setVideoPath(output);
                 videoView.start();
                 break;
+            case R.id.addFirstVideoCloud:
+               addVideoMethod(CLOUD_VIDEO_ONE);
+                break;
+            case R.id.appendVideoCloud:
+                if (firstCloudVideoPath == null) {
+                    Toast.makeText(this, "Add first video for merging", Toast.LENGTH_LONG).show();
+                } else if (secondCloudVideoPath == null) {
+                    downloadVideoFromCloud();
+                }else{
+                    if (firstCloudVideoHeight == secondCloudVideoHeight) {
+                        if (firstCloudVideoType.equals("video/mp4") && secondCloudVideoType.equals("video/mp4")) {
+                            String root = Environment.getExternalStorageDirectory().toString();
+                            output = root + "/" + "Merged_Video.mp4";
+
+                            addCloudButton.setText(getResources().getString(R.string.add_correct_resolution_video));
+                            addCloudButton.setBackgroundColor(Color.GRAY);
+                            if (mergeVideos(firstCloudVideoPath,secondCloudVideoPath , output)) {
+                                Toast.makeText(this, "Merged Video Output Path" + output, Toast.LENGTH_LONG).show();
+                                showCloudVideoButton.setVisibility(View.VISIBLE);
+                            } else {
+                                Toast.makeText(this, "Some Error Occurred.Try Again", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            addCloudButton.setText(getResources().getString(R.string.add_correct_resolution_video));
+                            addCloudButton.setBackgroundColor(Color.GRAY);
+                            Toast.makeText(this, "Make sure both videos are of file type mp4", Toast.LENGTH_LONG).show();
+                        }
+                    } else {
+                        addCloudButton.setText(getResources().getString(R.string.add_correct_resolution_video));
+                        addCloudButton.setBackgroundColor(Color.GRAY);
+                        Toast.makeText(this, "Make sure both videos are of same resolution", Toast.LENGTH_LONG).show();
+                    }
+                }
+                break;
+            case R.id.showMergedVideoCloud:
+               cloudVideoView.setVisibility(View.VISIBLE);
+                cloudVideoView.setVideoPath(output);
+                cloudVideoView.start();
+                break;
+        }
+    }
+    @Override
+    public void processFinish(String outputFile){
+        //Here you will receive the result fired from Async class
+        //of onPostExecute(result) method.
+        secondCloudVideoPath = outputFile;
+        getVideoResolution(outputFile,CLOUD_VIDEO_TWO);
+        secondCloudVideoType = getMimeType(outputFile);
+        appendCloudButton.performClick();
+    }
+    private void downloadVideoFromCloud() {
+        String cloudVideoUrl = "https://s3.amazonaws.com/ogrimar/spree/videos/2.mp4";
+        DownloadVideo downloadTask = new DownloadVideo(this,getApplicationContext());
+        downloadTask.setProgressText(progressText);
+        downloadTask.execute(cloudVideoUrl);
+    }
+
+    private void addVideoMethod(int VideoSerialNO) {
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            checkStoragePermission();
+        }else{
+            addVideo(VideoSerialNO);
+            showVideoButton.setVisibility(View.GONE);
+            videoView.setVisibility(View.GONE);
         }
     }
 
@@ -136,9 +204,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void addVideo(int videoNO) {
-
-        Intent i = new Intent(
-                Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+        Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(i, videoNO);
     }
 
@@ -149,7 +215,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (requestCode == VIDEO_ONE && resultCode == RESULT_OK && null != data) {
             Uri selectedVideo = data.getData();
             String[] filePathColumn = {MediaStore.Video.Media.DATA};
-
             Cursor cursor = getContentResolver().query(selectedVideo,
                     filePathColumn, null, null, null);
             if (cursor != null) {
@@ -180,6 +245,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             addButton2.setBackgroundColor(Color.GREEN);
             getVideoResolution(videoTwoPath,VIDEO_TWO);
             videoTwoType = getMimeType(videoTwoPath);
+        }else if(requestCode == CLOUD_VIDEO_ONE && resultCode == RESULT_OK && null != data) {
+            Uri selectedVideo = data.getData();
+            String[] filePathColumn = {MediaStore.Video.Media.DATA};
+
+            Cursor cursor = getContentResolver().query(selectedVideo,
+                    filePathColumn, null, null, null);
+            if (cursor != null) {
+                cursor.moveToFirst();
+            }
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            firstCloudVideoPath = cursor.getString(columnIndex);
+            cursor.close();
+            addCloudButton.setText(getResources().getString(R.string.added_video_one));
+            addCloudButton.setBackgroundColor(Color.GREEN);
+            getVideoResolution(firstCloudVideoPath,CLOUD_VIDEO_ONE);
+           firstCloudVideoType = getMimeType(firstCloudVideoPath);
         }
     }
 
@@ -191,15 +272,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(videoSNo == VIDEO_ONE){
             videoOneHeight=bmp.getHeight();
             videoOneWidth=bmp.getWidth();
-        }else{
+        }else if (videoSNo == VIDEO_TWO){
             videoTwoHeight=bmp.getHeight();
             videoTwoWidth=bmp.getWidth();
+        }else if (videoSNo == CLOUD_VIDEO_ONE){
+            firstCloudVideoHeight=bmp.getHeight();
+            firstCloudVideoWidth=bmp.getWidth();
+        }else if(videoSNo == CLOUD_VIDEO_TWO){
+            secondCloudVideoHeight=bmp.getHeight();
+            secondCloudVideoWidth=bmp.getWidth();
         }
-
     }
-    public static String getMimeType(String url) {
+    public static String getMimeType(String path) {
         String type = null;
-        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
         if (extension != null) {
             type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
         }
@@ -211,7 +297,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Movie[] inMovies = new Movie[]{
                     MovieCreator.build(videoFile),
                     MovieCreator.build(videoFileTwo)};
-
             List<Track> videoTracks = new LinkedList<Track>();
             List<Track> audioTracks = new LinkedList<Track>();
             for (Movie m : inMovies) {
@@ -246,5 +331,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         permissionCheck = ContextCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
         super.onResume();
+    }
+
+    private void setTabhost() {
+        TabHost host = (TabHost)findViewById(R.id.tabhost);
+        host.setup();
+        //Tab 1
+        TabHost.TabSpec spec = host.newTabSpec("Tab One");
+        spec.setContent(R.id.local);
+        spec.setIndicator("Local Files");
+        host.addTab(spec);
+        //Tab 2
+        spec = host.newTabSpec("Tab Two");
+        spec.setContent(R.id.cloud);
+        spec.setIndicator("Cloud Files");
+        host.addTab(spec);
     }
 }

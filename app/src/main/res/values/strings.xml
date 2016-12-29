@@ -6,5 +6,7 @@
     <string name="added_video_two">Video Two Added</string>
     <string name="append_both_videos">Append both videos</string>
     <string name="show_merged_videos">Show Merged Video</string>
+    <string name="second_video_is_fetched_from_amazon_s3">Second video is fetched from Amazon S3</string>
+    <string name="add_correct_resolution_video">Add Video Of Height 720p</string>
 
 </resources>
