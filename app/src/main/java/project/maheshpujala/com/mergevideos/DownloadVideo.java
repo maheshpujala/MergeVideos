@@ -36,6 +36,7 @@ public class DownloadVideo extends AsyncTask<String, Integer, String>{
     }
     @Override
     protected void onPreExecute() {
+        textPercentage.setText("Processing: 0%");
         textPercentage.setVisibility(View.VISIBLE);
     }
 
