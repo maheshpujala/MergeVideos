@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements DownloadVideo.Asy
         appendCloudButton.performClick();
     }
     private void downloadVideoFromCloud() {
-        String cloudVideoUrl = "https://s3.amazonaws.com/ogrimar/spree/videos/2.mp4";
+        String cloudVideoUrl = "https://s3.amazonaws.com/ogrimar/spree/videos/Video720p.mp4";
         DownloadVideo downloadTask = new DownloadVideo(this,getApplicationContext());
         downloadTask.setProgressText(progressText);
         downloadTask.execute(cloudVideoUrl);
